@@ -3,12 +3,6 @@
 # Prerequisites:
 #   fpc      FreePascal Compiler (https://www.freepascal.org)
 #   Lazarus  LCL units required for Forms, Controls, StdCtrls, etc.
-#   Indy     Indy networking sources — bundled in Indy/ (compiled from source)
-#
-# Required files not in the repository:
-#   *.dfm    Form resource files for each form unit (from Delphi/Lazarus IDE)
-#   VT340.res  Application resource (icon, version info); build with:
-#              fpcres -o VT340.res VT340.rc
 #
 # Usage:
 #   make                                    (Linux — all paths auto-detected)

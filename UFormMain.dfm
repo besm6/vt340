@@ -8788,7 +8788,6 @@ object FormMain: TFormMain
     OnDblClick = EditModeDblClick
   end
   object MainMenu: TMainMenu
-    AutoHotkeys = maManual
     Left = 592
     Top = 24
     object MMControl: TMenuItem
@@ -9056,10 +9055,6 @@ object FormMain: TFormMain
       Caption = #1055#1077#1095#1072#1090#1100' '#1101#1082#1088#1072#1085#1072
       OnClick = PMPrintClick
     end
-  end
-  object PrintDialog: TPrintDialog
-    Left = 552
-    Top = 24
   end
   object IdDNSResolver: TIdDNSResolver
     QueryType = []

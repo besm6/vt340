@@ -4,7 +4,7 @@ A software emulator of the VT-340 display terminal, written in Object Pascal
 (FreePascal / Lazarus). Designed for connecting to the BESM-6 mainframe at
 `besm6.cs.msu.ru` via Telnet or SSH.
 
-**Version:** 02.1 (30.05.2024)  
+**Version:** 02.1 (30.05.2024)
 **Authors:** Н.В.Макаров-Землянский, А.П.Ильин
 
 ---
@@ -163,5 +163,5 @@ Prm.ini                 — Runtime settings (created on first run)
 |------------|-------------|
 | FreePascal ≥ 3.2 | System package (`apt install fpc`) |
 | Lazarus LCL (GTK2) | System package (`apt install lcl-units-3.0 lcl-gtk2-3.0`) |
-| Indy 10 | Bundled in `Indy/` |
+| Indy 10 | Checked out from Github |
 | plink.exe | Bundled (Windows SSH tunneling only) |
