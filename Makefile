@@ -29,7 +29,6 @@ PROGRAM := VT340
 # Lazarus LCL units directory (required — provides Forms, Controls, etc.)
 # On Linux with lazarus 3.0 + lcl-units-3.0 this is set automatically below.
 # Example override: /Applications/Lazarus/lcl/units/x86_64-darwin/lcl
-LCLDIR  ?=
 
 # Indy components directory (required — provides IdTelnet, IdSMTP, etc.)
 # Empty = rely on fpc system search path if Indy is installed globally.

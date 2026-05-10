@@ -17,9 +17,9 @@ uses
  Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
  Dialogs, IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient,
  IdTelnet, IdGlobal, StdCtrls, Menus, ExtCtrls, ComCtrls, Buttons,
- Inifiles, ClipBrd, IdDNSResolver, Printers, MainCV, WinUnix,
- {$IFDEF MSWINDOWS}tlHelp32,{$ENDIF}
- {$IFDEF LINUX}Process,{$ENDIF}
+ Inifiles, ClipBrd, IdDNSResolver, Printers, MainCV, WinUnix
+ {$IFDEF MSWINDOWS}, tlHelp32{$ENDIF}
+ {$IFDEF LINUX}, Process{$ENDIF};
 //
 type
  TFormMain = class(TForm)
