@@ -161,6 +161,6 @@ Prm.ini                 — Runtime settings (created on first run)
 | Dependency | How supplied |
 |------------|-------------|
 | FreePascal ≥ 3.2 | System package (`apt install fpc`) |
-| Lazarus LCL (GTK2) | System package (`apt install lcl-units lcl-gtk2`) |
+| Lazarus LCL | Checked out from Github |
 | Indy 10 | Checked out from Github |
 | plink.exe | Bundled (Windows SSH tunneling only) |

@@ -34,6 +34,15 @@ ifeq ($(HOST_OS),Linux)
   FCLPROCDIR  ?= /usr/lib/x86_64-linux-gnu/fpc/3.2.2/units/x86_64-linux/fcl-process
 endif
 
+ifeq ($(HOST_OS),Darwin)
+  LAZARUSDIR  := Lazarus
+  LCLDIR      ?= $(LAZARUSDIR)/lcl/units/x86_64-darwin
+  LCLCOCOADIR ?= $(LAZARUSDIR)/lcl/units/x86_64-darwin/cocoa
+  LAZUTILSDIR ?= $(LAZARUSDIR)/components/lazutils/lib/x86_64-darwin
+  FCLPROCDIR  ?= /usr/local/lib/fpc/3.2.2/units/x86_64-darwin/fcl-process
+  LCL_STAMP   := $(LAZARUSDIR)/lcl/units/x86_64-darwin/.built
+endif
+
 # ---------------------------------------------------------------------------
 # Target platform
 # ---------------------------------------------------------------------------
@@ -67,6 +76,9 @@ endif
 ifneq ($(LCLGTK2DIR),)
   UNIT_PATHS += -Fu$(LCLGTK2DIR)
 endif
+ifneq ($(LCLCOCOADIR),)
+  UNIT_PATHS += -Fu$(LCLCOCOADIR)
+endif
 ifneq ($(LAZUTILSDIR),)
   UNIT_PATHS += -Fu$(LAZUTILSDIR)
 endif
@@ -89,6 +101,9 @@ endif
 ifeq ($(HOST_OS),Linux)
   LCL_FLAGS   := -dLCL -dLCLgtk2
   SUBSYS_FLAG :=
+else ifeq ($(HOST_OS),Darwin)
+  LCL_FLAGS   := -dLCL -dLCLcocoa
+  SUBSYS_FLAG := -k-framework -kUserNotifications
 else
   LCL_FLAGS   :=
   SUBSYS_FLAG := -WG
@@ -126,7 +141,7 @@ SOURCES := \
 
 all: $(BINDIR) $(OBJDIR) $(EXE)
 
-$(EXE): $(DPR) $(SOURCES) Indy
+$(EXE): $(DPR) $(SOURCES) Indy Lazarus $(LCL_STAMP)
 	$(FPC) $(FPCFLAGS) $(DPR)
 
 $(BINDIR) $(OBJDIR):
@@ -134,6 +149,19 @@ $(BINDIR) $(OBJDIR):
 
 Indy:
 	git clone https://github.com/IndySockets/Indy.git
+
+Lazarus:
+	git clone --branch fixes_3_0 https://github.com/fpc/Lazarus.git
+
+ifeq ($(HOST_OS),Darwin)
+# Compile LCL from the Lazarus/ source checkout (macOS/Darwin only).
+$(LCL_STAMP): Lazarus
+	cp stubs/LazarusPackageIntf.pas $(LAZARUSDIR)/components/lazutils/
+	cd $(LAZARUSDIR)/components/lazutils && $(MAKE) -j1 FPC=$(FPC)
+	cd $(LAZARUSDIR)/components/freetype && $(MAKE) -j1 FPC=$(FPC)
+	cd $(LAZARUSDIR)/lcl && $(MAKE) -j1 FPC=$(FPC) LCL_PLATFORM=cocoa
+	touch $@
+endif
 
 clean:
 	$(RM) -rf $(OBJDIR) $(BINDIR)
