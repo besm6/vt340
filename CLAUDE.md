@@ -33,7 +33,7 @@ Output binary: `bin/vt340.exe` (Win32) or `bin/vt340` (native).
 ### Prerequisites
 
 - `fpc` (FreePascal Compiler, Delphi compatibility mode `-Mdelphi`)
-- Lazarus LCL units — on Ubuntu/Debian: `apt install lcl-units lcl-gtk2`; on macOS the `Lazarus/` source checkout is compiled automatically by `make`
+- Lazarus LCL units — the `Lazarus/` source checkout is compiled automatically by `make`
 - Indy networking sources — checked out from Github as `Indy/` and compiled from source automatically
 - `src/vt340.res` — must be built separately: `fpcres -o src/vt340.res src/vt340.rc`
 - `src/*.dfm` — form layout files (present in repo for all forms)

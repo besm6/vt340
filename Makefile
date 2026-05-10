@@ -5,7 +5,7 @@
 #   Lazarus  LCL units required for Forms, Controls, StdCtrls, etc.
 #
 # Usage:
-#   make                                    (Linux — all paths auto-detected)
+#   make                                    (Linux/macOS — LCL built from Lazarus/)
 #   make LCLDIR=...                         (override LCL path)
 #   make CROSS=1 FPC=/path/to/cross-fpc LCLDIR=...
 #   make DEBUG=1
@@ -17,30 +17,38 @@ OBJDIR  := obj
 PROGRAM := vt340
 
 # Lazarus LCL units directory (required — provides Forms, Controls, etc.)
-# On Linux with Lazarus lcl-units this is set automatically below.
-# Example override: /Applications/Lazarus/lcl/units/x86_64-darwin/lcl
+# Built from the Lazarus/ source checkout on Linux and macOS.
+# Override: make LCLDIR=/path/to/lcl/units/...
 
 # ---------------------------------------------------------------------------
-# Linux: auto-detect installed Lazarus paths
-# (packages: lcl-units, lcl-gtk2)
+# Linux/macOS: build LCL from the Lazarus/ source checkout
 # ---------------------------------------------------------------------------
 
 HOST_OS := $(shell uname -s 2>/dev/null || echo Windows_NT)
 
+# Detect FPC target CPU and OS for path construction (e.g. x86_64, linux)
+FPC_CPU  := $(shell $(FPC) -iTP 2>/dev/null)
+FPC_OS   := $(shell $(FPC) -iTO 2>/dev/null)
+LCL_ARCH := $(FPC_CPU)-$(FPC_OS)
+
 ifeq ($(HOST_OS),Linux)
-  LCLDIR      ?= /usr/lib/lazarus/3.0/lcl/units/x86_64-linux
-  LCLGTK2DIR  ?= /usr/lib/lazarus/3.0/lcl/units/x86_64-linux/gtk2
-  LAZUTILSDIR ?= /usr/lib/lazarus/3.0/components/lazutils/lib/x86_64-linux
-  FCLPROCDIR  ?= /usr/lib/x86_64-linux-gnu/fpc/3.2.2/units/x86_64-linux/fcl-process
+  LAZARUSDIR   := Lazarus
+  LCLDIR       ?= $(LAZARUSDIR)/lcl/units/$(LCL_ARCH)
+  LCLGTK2DIR   ?= $(LAZARUSDIR)/lcl/units/$(LCL_ARCH)/gtk2
+  LAZUTILSDIR  ?= $(LAZARUSDIR)/components/lazutils/lib/$(LCL_ARCH)
+  FCLPROCDIR   ?= /usr/lib/$(FPC_CPU)-linux-gnu/fpc/3.2.2/units/$(LCL_ARCH)/fcl-process
+  LCL_PLATFORM := gtk2
+  LCL_STAMP    := $(LAZARUSDIR)/lcl/units/$(LCL_ARCH)/.built
 endif
 
 ifeq ($(HOST_OS),Darwin)
-  LAZARUSDIR  := Lazarus
-  LCLDIR      ?= $(LAZARUSDIR)/lcl/units/x86_64-darwin
-  LCLCOCOADIR ?= $(LAZARUSDIR)/lcl/units/x86_64-darwin/cocoa
-  LAZUTILSDIR ?= $(LAZARUSDIR)/components/lazutils/lib/x86_64-darwin
-  FCLPROCDIR  ?= /usr/local/lib/fpc/3.2.2/units/x86_64-darwin/fcl-process
-  LCL_STAMP   := $(LAZARUSDIR)/lcl/units/x86_64-darwin/.built
+  LAZARUSDIR   := Lazarus
+  LCLDIR       ?= $(LAZARUSDIR)/lcl/units/$(LCL_ARCH)
+  LCLCOCOADIR  ?= $(LAZARUSDIR)/lcl/units/$(LCL_ARCH)/cocoa
+  LAZUTILSDIR  ?= $(LAZARUSDIR)/components/lazutils/lib/$(LCL_ARCH)
+  FCLPROCDIR   ?= /usr/local/lib/fpc/3.2.2/units/$(LCL_ARCH)/fcl-process
+  LCL_PLATFORM := cocoa
+  LCL_STAMP    := $(LAZARUSDIR)/lcl/units/$(LCL_ARCH)/.built
 endif
 
 # ---------------------------------------------------------------------------
@@ -153,13 +161,13 @@ Indy:
 Lazarus:
 	git clone --branch fixes_3_0 https://github.com/fpc/Lazarus.git
 
-ifeq ($(HOST_OS),Darwin)
-# Compile LCL from the Lazarus/ source checkout (macOS/Darwin only).
+ifneq ($(LCL_STAMP),)
+# Compile LCL from the Lazarus/ source checkout (Linux/macOS).
 $(LCL_STAMP): Lazarus
 	cp stubs/LazarusPackageIntf.pas $(LAZARUSDIR)/components/lazutils/
 	cd $(LAZARUSDIR)/components/lazutils && $(MAKE) -j1 FPC=$(FPC)
 	cd $(LAZARUSDIR)/components/freetype && $(MAKE) -j1 FPC=$(FPC)
-	cd $(LAZARUSDIR)/lcl && $(MAKE) -j1 FPC=$(FPC) LCL_PLATFORM=cocoa
+	cd $(LAZARUSDIR)/lcl && $(MAKE) -j1 FPC=$(FPC) LCL_PLATFORM=$(LCL_PLATFORM)
 	touch $@
 endif
 

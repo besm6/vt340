@@ -41,7 +41,7 @@ machine.
 ### 1. Install build dependencies
 
 ```bash
-sudo apt install fpc lcl-units lcl-gtk2
+sudo apt install fpc
 ```
 
 This provides FreePascal 3.2.2 and the Lazarus LCL units (GTK2 widgetset).
