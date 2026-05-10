@@ -13,10 +13,13 @@ unit UFormMain;
 interface
 //
 uses
- Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+ {$IFDEF MSWINDOWS}Windows,{$ELSE}LCLIntf, LCLType,{$ENDIF}
+ Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
  Dialogs, IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient,
  IdTelnet, IdGlobal, StdCtrls, Menus, ExtCtrls, ComCtrls, Buttons,
- Inifiles, ClipBrd, IdDNSResolver, Printers, MainCV, WinUnix, jpeg, tlHelp32;
+ Inifiles, ClipBrd, IdDNSResolver, Printers, MainCV, WinUnix,
+ {$IFDEF MSWINDOWS}tlHelp32,{$ENDIF}
+ {$IFDEF LINUX}Process,{$ENDIF}
 //
 type
  TFormMain = class(TForm)
@@ -1520,6 +1523,7 @@ procedure TFormMain.MMConnectClick(Sender: TObject);
 var
 //NameFileSave    // Имя файла сохранения параметров
 //                :  string;
+{$IFDEF MSWINDOWS}
 ResCreate       // Результат выполнения функций запуска процесса
                 :  boolean;
 ResWait         // Результат выполнения функций ожидания
@@ -1528,6 +1532,7 @@ InfStartProcess // Информация о запускаемом процесс
                 :  TStartupInfo;
 InfProcess      // Информация о выполнении запущенного процесса
                 :  TProcessInformation;
+{$ENDIF}
 Str:string;
 begin
 case TypeConnect of
@@ -1554,6 +1559,7 @@ case TypeConnect of
  end;
 1: // SSH
  begin
+{$IFDEF MSWINDOWS}
  FillChar(InfStartProcess,SizeOf(InfStartProcess),#0);
  InfStartProcess.cb:=SizeOf(InfStartProcess);
  InfStartProcess.dwFlags:=STARTF_USESHOWWINDOW;
@@ -1563,15 +1569,9 @@ case TypeConnect of
  ' -P '+Port+' -batch -i "'+NameServer+'".ppk'+
   ' -N -L 127.0.0.1:'+SSHLockPort+':127.0.0.1:'+SSHLockPort;
 
-{Str:='plink.exe '+Address+ ' -hostkey '+SSHServerKey+
- ' -P '+Port+' -batch -i "'+NameServer+'".ppk'+
- ' telnet localhost '+SSHLockPort;
-}
   Memo.Lines.Add(Str);
  ResCreate:=CreateProcess(nil,
  PChar(Str),
-//  PChar('plink.exe '+Address+' -P '+Port+' -batch -i "'+NameServer+'".ppk'+
-//  ' -N -L 127.0.0.1:4202:127.0.0.1:4202'),
   nil, nil, false, CREATE_NEW_CONSOLE, nil,
   PChar(ExtractFilePath(ParamStr(0))),
   InfStartProcess, InfProcess);
@@ -1580,6 +1580,22 @@ case TypeConnect of
   Application.MessageBox('Ошибка запуска', 'Туннель SSH', MB_OK);
   Exit
   end;
+{$ENDIF}
+{$IFDEF LINUX}
+ Str:='ssh -N'+
+  ' -L 127.0.0.1:'+SSHLockPort+':127.0.0.1:'+SSHLockPort+
+  ' -i "'+NameServer+'.ppk"'+
+  ' -o StrictHostKeyChecking=accept-new'+
+  ' -p '+Port+' '+Address;
+ Memo.Lines.Add(Str);
+ with TProcess.Create(nil) do
+  begin
+  CommandLine:=Str;
+  Options:=[poNoConsole];
+  Execute;
+  Free;
+  end;
+{$ENDIF}
 // repeat
 //  Application.ProcessMessages;
 //  ResWait:=WaitForSingleObject(InfProcess.hProcess, 20);
@@ -1614,11 +1630,14 @@ end;
 // Функция закрытия вызванной программы
 //
 function KillTask(ExeFileName:String):integer;
+{$IFDEF MSWINDOWS}
   const Process_Terminate=$0001;
   var ContinueLoop:BOOL;
       FSnapShotHandle:THandle;
       FProcessEntry32:TProcessEntry32;
+{$ENDIF}
 begin
+{$IFDEF MSWINDOWS}
  result:=0;
  FSnapShotHandle:=CreateToolHelp32SnapShot(TH32CS_SnapProcess,0);
  FProcessEntry32.dwSize:=SizeOf(FProcessEntry32);
@@ -1632,6 +1651,9 @@ begin
      ContinueLoop:=Process32Next(FSnapShotHandle,FProcessEntry32);
      end;
      CloseHandle(FSnapShotHandle);
+{$ELSE}
+ Result:=0; // SSH subprocess lifetime managed by the OS on Linux
+{$ENDIF}
      end;
 //
 // Главное меню - "Управление - Отключить"
@@ -1754,6 +1776,7 @@ end;
 // ==========================================
 procedure TFormMain.MMCallEditClick(Sender: TObject);
 var
+{$IFDEF MSWINDOWS}
 ResCreate       // Результат выполнения функций запуска процесса
                 :  boolean;
 ResWait         // Результат выполнения функций ожидания
@@ -1767,6 +1790,7 @@ HandleStdErr,   // Дескриптор стандартного потока о
 HandleStdOutTmp,// Копия дескриптора стандартного потока вывода
 HandleStdErrTmp // Копия дескриптор стандартного потока ошибок
                 :  THandle;
+{$ENDIF}
 FileIn,         // Входной файл
 FileOut         // Выходной файл
                 :  TextFile;
@@ -1778,51 +1802,44 @@ begin
 //exit;
 //++HandleStdOut:=FileOpen(ExtractFilePath(ParamStr(0))+NameStdOut,
 //++ fmOpenReadWrite+fmShareDenyNone);
-FillChar(InfStartProcess,SizeOf(InfStartProcess),#0);
-InfStartProcess.cb:=SizeOf(InfStartProcess);
-InfStartProcess.dwFlags:=STARTF_USESHOWWINDOW;
-InfStartProcess.wShowWindow:=SW_SHOWNORMAL;
-//++DuplicateHandle(GetCurrentProcess, HandleStdOut, GetCurrentProcess,
-//++ @HandleStdOutTmp, 0, true, DUPLICATE_SAME_ACCESS);
-//DuplicateHandle(GetCurrentProcess, HandleStdErr, GetCurrentProcess,
-// @HandleStdErrTmp, 0, true, DUPLICATE_SAME_ACCESS);
-//InfStartProcess.hStdInput:=HandleStdInTmp;
-////////InfStartProcess.hStdOutput:=HandleStdOutTmp;
-//InfStartProcess.hStdError:=HandleStdErrTmp;
-//
 AssignFile(FileIn, ExtractFilePath(ParamStr(0))+NameStdIn);
 Rewrite(FileIn);
 Str:=Copy(Memo.Text, Memo.SelStart+1, Memo.SelLength);
 Writeln(FileIn, Str);
 CloseFile(FileIn);
 //
+{$IFDEF MSWINDOWS}
+FillChar(InfStartProcess,SizeOf(InfStartProcess),#0);
+InfStartProcess.cb:=SizeOf(InfStartProcess);
+InfStartProcess.dwFlags:=STARTF_USESHOWWINDOW;
+InfStartProcess.wShowWindow:=SW_SHOWNORMAL;
 ResCreate:=CreateProcess(nil,
-// PChar(Edit+' '+NameStdIn+' '+NameStdOut),
  PChar(Edit+' '+
  ExtractFilePath(ParamStr(0))+NameStdIn+' '+ExtractFilePath(ParamStr(0))+NameStdOut),
  nil, nil, false, CREATE_NEW_CONSOLE, nil,
- PChar(ExtractFilePath(ParamStr(0))), // nil !!!!
+ PChar(ExtractFilePath(ParamStr(0))),
  InfStartProcess, InfProcess);
-//
-//++CloseHandle(HandleStdOutTmp);
-// CloseHandle(HandleStdInTmp);
-// CloseHandle(HandleStdErrTmp);
-// CloseHandle(InfProcess.hThread);
-//
 if ResCreate = false then
  begin
-//++ FileClose(HandleStdOut);
-// FileClose(HandleStdErr);
-// CloseHandle(HandleStdInWrite);
  Application.MessageBox('Ошибка запуска', 'Редактор', MB_OK);
  Exit;
  end;
-// CloseHandle(InfProcess.hThread);
 repeat
  Application.ProcessMessages;
  ResWait:=WaitForSingleObject(InfProcess.hProcess, 20);
  if ResWait = WAIT_FAILED then Break;
 until ResWait = WAIT_OBJECT_0;
+{$ENDIF}
+{$IFDEF LINUX}
+with TProcess.Create(nil) do
+ begin
+ CommandLine:=Edit+' '+
+  ExtractFilePath(ParamStr(0))+NameStdIn+' '+ExtractFilePath(ParamStr(0))+NameStdOut;
+ Options:=[poWaitOnExit];
+ Execute;
+ Free;
+ end;
+{$ENDIF}
 //FileClose(HandleStdOut);
 //FileClose(HandleStdErr);
 // ResCreate:=TerminateProcess(InfProcess.hProcess, 0);

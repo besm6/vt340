@@ -4,6 +4,10 @@
 #   fpc      FreePascal Compiler (https://www.freepascal.org)
 #   Lazarus  LCL units required for Forms, Controls, StdCtrls, etc.
 #   Indy     Indy networking units (IdTelnet, IdSMTP, etc.)
+#            Not available as a distro package; build from source:
+#              git clone https://github.com/IndySockets/Indy.git ~/Indy
+#              cd ~/Indy && lazbuild --build-all packages/IndyLaz.lpk
+#            Then pass INDYDIR=~/Indy/packages/lib/x86_64-linux
 #
 # Required files not in the repository:
 #   *.dfm    Form resource files for each form unit (from Delphi/Lazarus IDE)
@@ -11,8 +15,8 @@
 #              fpcres -o VT340.res VT340.rc
 #
 # Usage:
-#   make LCLDIR=/path/to/lazarus/lcl/units/<cpu-os>/lcl
-#   make LCLDIR=... INDYDIR=/path/to/indy/lib
+#   make INDYDIR=/path/to/indy/lib          (Linux — LCL paths auto-detected)
+#   make LCLDIR=... INDYDIR=...             (override LCL path)
 #   make CROSS=1 FPC=/path/to/cross-fpc LCLDIR=... INDYDIR=...
 #   make DEBUG=1
 #   make clean / distclean
@@ -23,7 +27,8 @@ OBJDIR  := obj
 PROGRAM := VT340
 
 # Lazarus LCL units directory (required — provides Forms, Controls, etc.)
-# Example: /Applications/Lazarus/lcl/units/x86_64-darwin/lcl
+# On Linux with lazarus 3.0 + lcl-units-3.0 this is set automatically below.
+# Example override: /Applications/Lazarus/lcl/units/x86_64-darwin/lcl
 LCLDIR  ?=
 
 # Indy components directory (required — provides IdTelnet, IdSMTP, etc.)
@@ -31,12 +36,24 @@ LCLDIR  ?=
 INDYDIR ?=
 
 # ---------------------------------------------------------------------------
+# Linux: auto-detect installed Lazarus 3.0 paths
+# (packages: lazarus, lcl-units-3.0, lcl-gtk2-3.0)
+# ---------------------------------------------------------------------------
+
+HOST_OS := $(shell uname -s 2>/dev/null || echo Windows_NT)
+
+ifeq ($(HOST_OS),Linux)
+  LCLDIR      ?= /usr/lib/lazarus/3.0/lcl/units/x86_64-linux
+  LCLGTK2DIR  ?= /usr/lib/lazarus/3.0/lcl/units/x86_64-linux/gtk2
+  LAZUTILSDIR ?= /usr/lib/lazarus/3.0/components/lazutils/lib/x86_64-linux
+  FCLPROCDIR  ?= /usr/lib/x86_64-linux-gnu/fpc/3.2.2/units/x86_64-linux/fcl-process
+endif
+
+# ---------------------------------------------------------------------------
 # Target platform
 # ---------------------------------------------------------------------------
 # On Windows (MSYS2/Git Bash/Cygwin) the target is Win32 automatically.
 # On macOS/Linux set CROSS=1 and point FPC to a win32-targeted cross-compiler.
-
-HOST_OS := $(shell uname -s 2>/dev/null || echo Windows_NT)
 
 ifeq ($(CROSS),1)
   TARGET_FLAGS := -Twin32 -Pi386
@@ -62,6 +79,15 @@ UNIT_PATHS := -Fu.
 ifneq ($(LCLDIR),)
   UNIT_PATHS += -Fu$(LCLDIR)
 endif
+ifneq ($(LCLGTK2DIR),)
+  UNIT_PATHS += -Fu$(LCLGTK2DIR)
+endif
+ifneq ($(LAZUTILSDIR),)
+  UNIT_PATHS += -Fu$(LAZUTILSDIR)
+endif
+ifneq ($(FCLPROCDIR),)
+  UNIT_PATHS += -Fu$(FCLPROCDIR)
+endif
 ifneq ($(INDYDIR),)
   UNIT_PATHS += -Fu$(INDYDIR)
 endif
@@ -72,8 +98,17 @@ else
   OPT_FLAGS := -O2 -Xs
 endif
 
+# LCL widgetset and subsystem flags: GTK2 on Linux, Windows GUI on Win32
+ifeq ($(HOST_OS),Linux)
+  LCL_FLAGS   := -dLCL -dLCLgtk2
+  SUBSYS_FLAG :=
+else
+  LCL_FLAGS   :=
+  SUBSYS_FLAG := -WG
+endif
+
 FPCFLAGS := -Mdelphi $(TARGET_FLAGS) -FE$(BINDIR) -FU$(OBJDIR) \
-            $(UNIT_PATHS) $(OPT_FLAGS) -WG
+            $(UNIT_PATHS) $(OPT_FLAGS) $(LCL_FLAGS) $(SUBSYS_FLAG)
 
 # ---------------------------------------------------------------------------
 # Sources

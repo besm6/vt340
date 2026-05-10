@@ -14,7 +14,12 @@ unit WinUnix;
 interface
 //
 uses
- Windows, Messages, StdCtrls;
+{$IFDEF MSWINDOWS}
+ Windows, Messages,
+{$ELSE}
+ LCLIntf, LCLType, LMessages,
+{$ENDIF}
+ StdCtrls;
 //
 function GetFirstVisibleLine(var Memo: TMemo):integer;
 procedure LineScroll(var Memo: TMemo; NumLine: integer);
@@ -35,7 +40,7 @@ function GetFirstVisibleLine
  :  integer;
 begin
 {$IFDEF LINUX}
-Result:=1;
+Result:=0;
 {$ENDIF}
 //
 {$IFDEF MSWINDOWS}
@@ -52,7 +57,7 @@ procedure LineScroll
            :  integer);
 begin
 {$IFDEF LINUX}
-Result:=1;
+// not supported
 {$ENDIF}
 //
 {$IFDEF MSWINDOWS}
@@ -67,7 +72,7 @@ procedure ScrollCaret
            :  TMemo);
 begin
 {$IFDEF LINUX}
-Result:=1;
+// not supported
 {$ENDIF}
 //
 {$IFDEF MSWINDOWS}
@@ -82,7 +87,7 @@ procedure ScrollLineDown
            :  TMemo);
 begin
 {$IFDEF LINUX}
-Result:=1;
+// not supported
 {$ENDIF}
 //
 {$IFDEF MSWINDOWS}
@@ -92,12 +97,12 @@ end;
 //
 // Прокрутка экрана в редакторе на строку вверх
 // ============================================
-procedure ScrollLineUP
+procedure ScrollLineUp
  (var Memo // Редактор
            :  TMemo);
 begin
 {$IFDEF LINUX}
-Result:=1;
+// not supported
 {$ENDIF}
 //
 {$IFDEF MSWINDOWS}

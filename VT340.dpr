@@ -11,6 +11,7 @@
 program VT340;
 //
 uses
+  Interfaces,
   Forms,
   MainCV in 'MainCV.pas',
   UFormMain in 'UFormMain.pas' {FormMain},

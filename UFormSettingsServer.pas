@@ -13,8 +13,8 @@ unit UFormSettingsServer;
 interface
 //
 uses
- Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
- Dialogs, StdCtrls, ExtCtrls, CheckLst, Inifiles, WinSock, MainCV;
+ {$IFDEF MSWINDOWS}Windows,{$ENDIF} Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+ Dialogs, StdCtrls, ExtCtrls, CheckLst, Inifiles, {$IFDEF MSWINDOWS}WinSock,{$ENDIF} MainCV;
 //
 type
  TFormSettingsServer = class(TForm)

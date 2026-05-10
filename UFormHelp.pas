@@ -13,7 +13,7 @@ unit UFormHelp;
 interface
 //
 uses
- Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+ {$IFDEF MSWINDOWS}Windows,{$ENDIF} Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
  Dialogs, StdCtrls, IdBaseComponent, IdComponent, IdTCPConnection,
  IdTCPClient, IdGlobal, IdExplicitTLSClientServerBase, IdMessageClient, IdIMAP4,
  IdSMTPBase, IdSMTP, IdMessage, IdIOHandler, IdIOHandlerSocket,
