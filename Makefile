@@ -14,15 +14,15 @@
 FPC     ?= fpc
 BINDIR  := bin
 OBJDIR  := obj
-PROGRAM := VT340
+PROGRAM := vt340
 
 # Lazarus LCL units directory (required — provides Forms, Controls, etc.)
-# On Linux with lazarus 3.0 + lcl-units-3.0 this is set automatically below.
+# On Linux with Lazarus lcl-units this is set automatically below.
 # Example override: /Applications/Lazarus/lcl/units/x86_64-darwin/lcl
 
 # ---------------------------------------------------------------------------
-# Linux: auto-detect installed Lazarus 3.0 paths
-# (packages: lazarus, lcl-units-3.0, lcl-gtk2-3.0)
+# Linux: auto-detect installed Lazarus paths
+# (packages: lcl-units, lcl-gtk2)
 # ---------------------------------------------------------------------------
 
 HOST_OS := $(shell uname -s 2>/dev/null || echo Windows_NT)
@@ -60,7 +60,7 @@ endif
 # Compiler flags
 # ---------------------------------------------------------------------------
 
-UNIT_PATHS := -Fu.
+UNIT_PATHS := -Fusrc
 ifneq ($(LCLDIR),)
   UNIT_PATHS += -Fu$(LCLDIR)
 endif
@@ -101,22 +101,22 @@ FPCFLAGS := -Mdelphi $(TARGET_FLAGS) -FE$(BINDIR) -FU$(OBJDIR) \
 # Sources
 # ---------------------------------------------------------------------------
 
-DPR := VT340.dpr
+DPR := src/vt340.dpr
 
 SOURCES := \
-    MainCV.pas \
-    WinUnix.pas \
-    UFormDebug.pas \
-    UFormEntry.pas \
-    UFormHelp.pas \
-    UFormLanguage.pas \
-    UFormMain.pas \
-    UFormMessage.pas \
-    UFormSearch.pas \
-    UFormSetPassword.pas \
-    UFormSettingSSH.pas \
-    UFormSettingsScreen.pas \
-    UFormSettingsServer.pas
+    src/MainCV.pas \
+    src/WinUnix.pas \
+    src/UFormDebug.pas \
+    src/UFormEntry.pas \
+    src/UFormHelp.pas \
+    src/UFormLanguage.pas \
+    src/UFormMain.pas \
+    src/UFormMessage.pas \
+    src/UFormSearch.pas \
+    src/UFormSetPassword.pas \
+    src/UFormSettingSSH.pas \
+    src/UFormSettingsScreen.pas \
+    src/UFormSettingsServer.pas
 
 # ---------------------------------------------------------------------------
 # Targets

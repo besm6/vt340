@@ -7,7 +7,7 @@ A software emulator of the VT-340 display terminal, written in Object Pascal
 **Version:** 02.1 (30.05.2024)
 **Authors:** Н.В.Макаров-Землянский, А.П.Ильин
 
----
+![screenshot](doc/vt340-linux.png)
 
 ## What Is This?
 
@@ -41,11 +41,11 @@ machine.
 ### 1. Install build dependencies
 
 ```bash
-sudo apt install fpc lazarus lcl-units-3.0 lcl-gtk2-3.0
+sudo apt install fpc lcl-units lcl-gtk2
 ```
 
 This provides FreePascal 3.2.2 and the Lazarus LCL units (GTK2 widgetset).
-The Indy networking library is bundled in the `Indy/` directory and compiled
+The Indy networking library is checked out as the `Indy/` directory and compiled
 from source automatically — no separate installation is needed.
 
 ### 2. Clone the repository
@@ -62,7 +62,7 @@ make
 ```
 
 The compiler auto-detects the Lazarus paths for the standard Ubuntu/Debian
-package layout. The binary is written to `bin/VT340`.
+package layout. The binary is written to `bin/vt340`.
 
 ### Build variants
 
@@ -76,7 +76,7 @@ make clean            # Delete build artefacts (obj/ and bin/)
 
 ### Cross-compiling to Win32
 
-To produce a `bin/VT340.exe` from Linux you need a FreePascal cross-compiler
+To produce a `bin/vt340.exe` from Linux you need a FreePascal cross-compiler
 targeting i386-win32:
 
 ```bash
@@ -88,7 +88,7 @@ make CROSS=1 FPC=/path/to/i386-win32-fpc LCLDIR=/path/to/win32-lcl-units
 ## Running
 
 ```bash
-./bin/VT340
+./bin/vt340
 ```
 
 On first launch the program creates `Prm.ini` in the working directory to
@@ -136,7 +136,7 @@ Delete `Prm.ini` to reset everything to defaults.
 ## Project Structure
 
 ```
-VT340.dpr               — Program entry point; creates all forms
+vt340.dpr               — Program entry point; creates all forms
 MainCV.pas              — Global state (connection params, display settings)
 WinUnix.pas             — Platform abstraction (TMemo scroll operations)
 UFormMain.pas           — Main terminal window
@@ -150,7 +150,6 @@ UFormDebug.pas          — Debug output window
 UFormHelp.pas           — Help viewer (also handles email via Indy SMTP/IMAP)
 UFormMessage.pas        — Generic message dialog
 UFormLanguage.pas       — Language / charset selection
-Indy/                   — Bundled Indy networking library (compiled from source)
 plink.exe               — PuTTY plink for SSH tunneling (Windows)
 Prm.ini                 — Runtime settings (created on first run)
 ```
@@ -162,6 +161,6 @@ Prm.ini                 — Runtime settings (created on first run)
 | Dependency | How supplied |
 |------------|-------------|
 | FreePascal ≥ 3.2 | System package (`apt install fpc`) |
-| Lazarus LCL (GTK2) | System package (`apt install lcl-units-3.0 lcl-gtk2-3.0`) |
+| Lazarus LCL (GTK2) | System package (`apt install lcl-units lcl-gtk2`) |
 | Indy 10 | Checked out from Github |
 | plink.exe | Bundled (Windows SSH tunneling only) |

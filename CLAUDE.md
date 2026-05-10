@@ -25,28 +25,28 @@ make clean       # remove obj/ and bin/
 make distclean   # same as clean
 ```
 
-Output binary: `bin/VT340.exe` (Win32) or `bin/VT340` (native).
+Output binary: `bin/vt340.exe` (Win32) or `bin/vt340` (native).
 
 ### Prerequisites
 
 - `fpc` (FreePascal Compiler, Delphi compatibility mode `-Mdelphi`)
-- Lazarus LCL units — on Ubuntu/Debian: `apt install lazarus lcl-units-3.0 lcl-gtk2-3.0`
-- Indy networking sources — bundled in `Indy/` and compiled from source automatically
-- `VT340.res` — must be built separately: `fpcres -o VT340.res VT340.rc`
-- `*.dfm` — form layout files (present in repo for all forms)
+- Lazarus LCL units — on Ubuntu/Debian: `apt install lcl-units lcl-gtk2`
+- Indy networking sources — checked out from Github as `Indy/` and compiled from source automatically
+- `src/vt340.res` — must be built separately: `fpcres -o src/vt340.res src/vt340.rc`
+- `src/*.dfm` — form layout files (present in repo for all forms)
 - `plink.exe` — PuTTY's plink, bundled in repo, used for SSH tunneling
 
 ## Architecture
 
 ### Entry Point
 
-`VT340.dpr` creates all forms and calls `Application.Run`. All forms are created at startup and reused throughout the session.
+`src/vt340.dpr` creates all forms and calls `Application.Run`. All forms are created at startup and reused throughout the session.
 
-### Global State — `MainCV.pas`
+### Global State — `src/MainCV.pas`
 
 All shared configuration lives here as global variables: connection parameters (`Address`, `Port`, `TypeConnect`, `SSHServerKey`), display settings (`Style`, `NumStrScreen`, `Keyboard`), runtime flags (`Mode`, `TimerWork`), and the INI filename (`Prm.ini`). Every other unit reads from and writes to these globals.
 
-### Main Form — `UFormMain.pas`
+### Main Form — `src/UFormMain.pas`
 
 The terminal display. Key components:
 - `Memo: TMemo` — terminal screen buffer
@@ -67,9 +67,9 @@ All settings are stored in INI format. Sections:
 - `[List Servers]` — stored server list (name, type, address, port, SSH params)
 - `[Screen]` — display, font, keyboard, password settings
 
-### Platform Abstraction — `WinUnix.pas`
+### Platform Abstraction — `src/WinUnix.pas`
 
-Wraps Win32 `EM_*` messages for `TMemo` scrolling (`EM_GETFIRSTVISIBLELINE`, `EM_LINESCROLL`, etc.). Linux stubs are no-ops. `UFormMain.pas` also guards Windows-only calls (`SendMessage`, `LockWindowUpdate`, `TPrintDialog`) with `{$IFDEF MSWINDOWS}`, using `Memo.CaretPos` as the Linux fallback for cursor-position queries. Printing is Windows-only.
+Wraps Win32 `EM_*` messages for `TMemo` scrolling (`EM_GETFIRSTVISIBLELINE`, `EM_LINESCROLL`, etc.). Linux stubs are no-ops. `src/UFormMain.pas` also guards Windows-only calls (`SendMessage`, `LockWindowUpdate`, `TPrintDialog`) with `{$IFDEF MSWINDOWS}`, using `Memo.CaretPos` as the Linux fallback for cursor-position queries. Printing is Windows-only.
 
 ### Form Units
 
