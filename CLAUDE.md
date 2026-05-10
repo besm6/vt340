@@ -9,20 +9,20 @@ VT-340 terminal emulator written in Object Pascal (Delphi/FreePascal), targeting
 ## Build Commands
 
 ```bash
-# Standard build (must supply LCL path)
-make LCLDIR=/path/to/lazarus/lcl/units/x86_64-linux/lcl
+# Standard build — on Linux, all paths are auto-detected
+make
 
-# With explicit Indy path
-make LCLDIR=... INDYDIR=/path/to/indy/lib
+# Override LCL path (e.g. on macOS or non-standard install)
+make LCLDIR=/path/to/lazarus/lcl/units/x86_64-linux
 
 # Cross-compile to Win32 from Linux/macOS
-make CROSS=1 FPC=/path/to/i386-win32-fpc LCLDIR=... INDYDIR=...
+make CROSS=1 FPC=/path/to/i386-win32-fpc LCLDIR=...
 
 # Debug build (enables -g -gl -dDEBUG)
-make DEBUG=1 LCLDIR=...
+make DEBUG=1
 
-make clean       # remove .ppu/.o/.a from obj/
-make distclean   # remove bin/ and obj/ entirely
+make clean       # remove obj/ and bin/
+make distclean   # same as clean
 ```
 
 Output binary: `bin/VT340.exe` (Win32) or `bin/VT340` (native).
@@ -30,10 +30,10 @@ Output binary: `bin/VT340.exe` (Win32) or `bin/VT340` (native).
 ### Prerequisites
 
 - `fpc` (FreePascal Compiler, Delphi compatibility mode `-Mdelphi`)
-- Lazarus LCL units (Forms, Controls, StdCtrls, etc.)
-- Indy networking units (IdTelnet, IdSMTP, etc.)
+- Lazarus LCL units — on Ubuntu/Debian: `apt install lazarus lcl-units-3.0 lcl-gtk2-3.0`
+- Indy networking sources — bundled in `Indy/` and compiled from source automatically
 - `VT340.res` — must be built separately: `fpcres -o VT340.res VT340.rc`
-- `*.dfm` — form layout files (present in repo)
+- `*.dfm` — form layout files (present in repo for all forms)
 - `plink.exe` — PuTTY's plink, bundled in repo, used for SSH tunneling
 
 ## Architecture
@@ -69,7 +69,7 @@ All settings are stored in INI format. Sections:
 
 ### Platform Abstraction — `WinUnix.pas`
 
-Wraps Win32 `EM_*` messages for `TMemo` scrolling. Linux stubs currently return `1` (non-functional). The codebase otherwise uses the `Windows` unit directly in several forms, so Linux builds are partially functional at best.
+Wraps Win32 `EM_*` messages for `TMemo` scrolling (`EM_GETFIRSTVISIBLELINE`, `EM_LINESCROLL`, etc.). Linux stubs are no-ops. `UFormMain.pas` also guards Windows-only calls (`SendMessage`, `LockWindowUpdate`, `TPrintDialog`) with `{$IFDEF MSWINDOWS}`, using `Memo.CaretPos` as the Linux fallback for cursor-position queries. Printing is Windows-only.
 
 ### Form Units
 
@@ -91,4 +91,5 @@ Wraps Win32 `EM_*` messages for `TMemo` scrolling. Linux stubs currently return 
 - Delphi compatibility mode (`-Mdelphi`) — use Delphi syntax, not pure FPC extensions.
 - Russian comments throughout; variable names follow the pattern `Name // Comment` on a dedicated line.
 - No unit tests; the build produces the single GUI executable.
-- `{$IFDEF MSWINDOWS}` / `{$IFDEF LINUX}` used for platform branching, primarily in `WinUnix.pas`.
+- `{$IFDEF MSWINDOWS}` / `{$IFDEF LINUX}` used for platform branching in `WinUnix.pas` and `UFormMain.pas`.
+- Cyrillic character literals in code (set ranges, array initialisers) must use CP1251 hex codes (`#$C0`–`#$DF` for А–Я, `#$E0`–`#$FF` for а–я) because the source files are UTF-8 and FPC rejects multi-byte chars where `Char` (AnsiChar) is expected.

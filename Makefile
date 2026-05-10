@@ -3,11 +3,7 @@
 # Prerequisites:
 #   fpc      FreePascal Compiler (https://www.freepascal.org)
 #   Lazarus  LCL units required for Forms, Controls, StdCtrls, etc.
-#   Indy     Indy networking units (IdTelnet, IdSMTP, etc.)
-#            Not available as a distro package; build from source:
-#              git clone https://github.com/IndySockets/Indy.git ~/Indy
-#              cd ~/Indy && lazbuild --build-all packages/IndyLaz.lpk
-#            Then pass INDYDIR=~/Indy/packages/lib/x86_64-linux
+#   Indy     Indy networking sources — bundled in Indy/ (compiled from source)
 #
 # Required files not in the repository:
 #   *.dfm    Form resource files for each form unit (from Delphi/Lazarus IDE)
@@ -15,9 +11,9 @@
 #              fpcres -o VT340.res VT340.rc
 #
 # Usage:
-#   make INDYDIR=/path/to/indy/lib          (Linux — LCL paths auto-detected)
-#   make LCLDIR=... INDYDIR=...             (override LCL path)
-#   make CROSS=1 FPC=/path/to/cross-fpc LCLDIR=... INDYDIR=...
+#   make                                    (Linux — all paths auto-detected)
+#   make LCLDIR=...                         (override LCL path)
+#   make CROSS=1 FPC=/path/to/cross-fpc LCLDIR=...
 #   make DEBUG=1
 #   make clean / distclean
 
@@ -29,10 +25,6 @@ PROGRAM := VT340
 # Lazarus LCL units directory (required — provides Forms, Controls, etc.)
 # On Linux with lazarus 3.0 + lcl-units-3.0 this is set automatically below.
 # Example override: /Applications/Lazarus/lcl/units/x86_64-darwin/lcl
-
-# Indy components directory (required — provides IdTelnet, IdSMTP, etc.)
-# Empty = rely on fpc system search path if Indy is installed globally.
-INDYDIR ?=
 
 # ---------------------------------------------------------------------------
 # Linux: auto-detect installed Lazarus 3.0 paths
@@ -87,9 +79,11 @@ endif
 ifneq ($(FCLPROCDIR),)
   UNIT_PATHS += -Fu$(FCLPROCDIR)
 endif
-ifneq ($(INDYDIR),)
-  UNIT_PATHS += -Fu$(INDYDIR)
-endif
+UNIT_PATHS += -FuIndy/Lib/System
+UNIT_PATHS += -FuIndy/Lib/SuperCore
+UNIT_PATHS += -FuIndy/Lib/Core
+UNIT_PATHS += -FuIndy/Lib/Protocols
+UNIT_PATHS += -FuIndy/Lib/Security
 
 ifeq ($(DEBUG),1)
   OPT_FLAGS := -g -gl -dDEBUG
@@ -138,14 +132,17 @@ SOURCES := \
 
 all: $(BINDIR) $(OBJDIR) $(EXE)
 
-$(EXE): $(DPR) $(SOURCES)
+$(EXE): $(DPR) $(SOURCES) Indy
 	$(FPC) $(FPCFLAGS) $(DPR)
 
 $(BINDIR) $(OBJDIR):
 	mkdir -p $@
 
+Indy:
+	git clone https://github.com/IndySockets/Indy.git
+
 clean:
-	$(RM) $(OBJDIR)/*.ppu $(OBJDIR)/*.o $(OBJDIR)/*.a
+	$(RM) -rf $(OBJDIR) $(BINDIR)
 
 distclean: clean
 	$(RM) -r $(BINDIR) $(OBJDIR)

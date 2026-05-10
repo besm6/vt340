@@ -17,8 +17,8 @@ uses
  Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
  Dialogs, IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient,
  IdTelnet, IdGlobal, StdCtrls, Menus, ExtCtrls, ComCtrls, Buttons,
- Inifiles, ClipBrd, IdDNSResolver, Printers, MainCV, WinUnix
- {$IFDEF MSWINDOWS}, tlHelp32{$ENDIF}
+ Inifiles, ClipBrd, IdDNSResolver, MainCV, WinUnix
+ {$IFDEF MSWINDOWS}, Printers, tlHelp32{$ENDIF}
  {$IFDEF LINUX}, Process{$ENDIF};
 //
 type
@@ -28,7 +28,7 @@ type
   Timer: TTimer;
   IdTelnet: TIdTelnet;
   IdDNSResolver: TIdDNSResolver;
-  PrintDialog: TPrintDialog;
+  {$IFDEF MSWINDOWS}PrintDialog: TPrintDialog;{$ENDIF}
   MainMenu: TMainMenu;
    MMControl: TMenuItem;
     MMConnect: TMenuItem;
@@ -289,8 +289,8 @@ begin
 Result:=Ch;
 if Ch in ['A'..'Z'] then
  begin Result:=chr(ord(Ch)-ord('A')+ord('a')); Exit end;
-if Ch in ['А'..'Я'] then
- begin Result:=chr(ord(Ch)-ord('А')+ord('а')); Exit end;
+if Ch in [#$C0..#$DF] then
+ begin Result:=chr(ord(Ch)-$C0+$E0); Exit end;
 end;
 //
 // Замена символа в строке
@@ -337,17 +337,17 @@ function StrToLat
  :  string;
 const
  RusLat: array [0..31] of char =
-// А   Б   В   Г   Д   Е   Ж   З   И   Й   К   Л   М   Н   О   П
- ('A','Б','B','Г','Д','E','Ж','З','И','Й','K','Л','M','H','O','П',
-// Р   С   Т   У   Ф   Х   Ц   Ч   Ш   Щ   Ъ   Ы   Ь   Э   Ю   Я
-  'P','C','T','У','Ф','X','Ц','Ч','Ш','Щ','Ъ','Ы','Ь','Э','Ю','Я');
+// А        Б        В        Г        Д        Е        Ж        З        И        Й        К        Л        М        Н        О        П
+ ('A',    #$C1,    'B',    #$C3,    #$C4,    'E',    #$C6,    #$C7,    #$C8,    #$C9,    'K',    #$CB,    'M',    'H',    'O',    #$CF,
+// Р        С        Т        У        Ф        Х        Ц        Ч        Ш        Щ        Ъ        Ы        Ь        Э        Ю        Я
+  'P',    'C',    'T',    #$D3,    #$D4,    'X',    #$D6,    #$D7,    #$D8,    #$D9,    #$DA,    #$DB,    #$DC,    #$DD,    #$DE,    #$DF);
 var
 NumCh // Номер символа
       :  integer;
 begin
 Result:=StrIn;
 for NumCh:=1 to Length(StrIn)-1 do
- if Result[NumCh] in ['А'..'Я'] then
+ if Result[NumCh] in [#$C0..#$DF] then
   Result[NumCh]:=RusLat[ord(Result[NumCh])-$C0];
 end;
 //
@@ -360,10 +360,10 @@ function StrToRus
  :  string;
 const
  LatRus: array [0..25] of char =
-//  A   B   C   D   E   F   G   H   I   J   K   L   M
-  ('А','В','С','D','Е','F','G','Н','I','J','К','L','М',
-//  N   O   P   Q   R   S   T   U   V   W   X   Y   Z
-   'N','О','Р','Q','R','S','Т','U','V','W','Х','Y','Z');
+//  A        B        C        D   E        F   G   H        I   J   K        L   M
+  (#$C0,    #$C2,    #$D1,    'D',#$C5,    'F','G',#$CD,    'I','J',#$CA,    'L',#$CC,
+//  N   O        P        Q   R   S   T        U   V   W   X        Y   Z
+   'N', #$CE,    #$D0,    'Q','R','S',#$D2,    'U','V','W',#$D5,    'Y','Z');
 var
 NumCh // Номер символа
       :  integer;
@@ -388,7 +388,7 @@ begin
 for NumSym:=1 to Length(StrIn)-1 do
  StrIn[NumSym]:=DownCase(StrIn[NumSym]);
 for NumSym:=1 to Length(StrIn)-2 do
- if (StrIn[NumSym] = '!') and (StrIn[NumSym+1] in ['a'..'z','а'..'я']) then
+ if (StrIn[NumSym] = '!') and (StrIn[NumSym+1] in ['a'..'z',#$E0..#$FF]) then
   begin
   StrIn[NumSym]:=' ';
   StrIn[NumSym+1]:=chr(ord(StrIn[NumSym+1]) - $20)
@@ -489,9 +489,9 @@ if Key in ['a'..'z'] then // Ctrl
  Result:=chr(ord(Key)-ord('a')+1);
  Exit;
  end;
-if Key in ['А'..'Я'] then // Русские буквы
+if Key in [#$C0..#$DF] then // Русские буквы
  begin
- Result:=chr(SymToB6[ord(Key)-ord('А')]);
+ Result:=chr(SymToB6[ord(Key)-$C0]);
  Exit;
  end;
 end;
@@ -710,8 +710,13 @@ Str    //
        :  string;
 begin
 // ТЕСТ
+{$IFDEF MSWINDOWS}
 CurrentLine:=SendMessage(memo.Handle,EM_LINEFROMCHAR, memo.SelStart, 0);
 ColNum:= memo.SelStart-SendMessage(memo.Handle,EM_LINEINDEX,CurrentLine, 0) + 1;
+{$ELSE}
+CurrentLine:=Memo.CaretPos.Y;
+ColNum:=Memo.CaretPos.X + 1;
+{$ENDIF}
 // StatusBar.Panels[0].Text;
 // КОНТЕСТ
 //EditPos.Text:=IntToStr(Memo.CaretPos.Y)+','+IntToStr(Memo.CaretPos.X)+  //Работает
@@ -797,7 +802,7 @@ Result:=chr(KeyIn);
 Key:=chr(KeyIn);
 if Key in ['a'..'z'] then
  Result:=UpCase(Key);
-if Key in ['а'..'я'] then
+if Key in [#$E0..#$FF] then
  Result:=chr(ord(Key)-$20);
 if ord(Key) in [$01..$1A] then
  Result:=chr(ord(Key)+$60);
@@ -819,18 +824,18 @@ function TFormMain.KeyToSymNVMZ
 const
 KeyToNVMZ1  // Таблица перекодировки первого ряда
             :  array [0..13, 0..2] of char =
- (('`','~','~'), ('1','!','!'), ('2','@','"'), ('3','#','№'), ('4','$',';'),
+ (('`','~','~'), ('1','!','!'), ('2','@','"'), ('3','#',#$B9), ('4','$',';'),
   ('5','%','%'), ('6','^',':'), ('7','&','?'), ('8','*','*'), ('9','(','('),
   ('0',')',')'), ('-','_','_'), ('=','+','+'), (#08,#08,#08));
 KeyToNVMZ24 // Таблица перекодировки 2,3,4-го рядов
             :  array [0..35, 0..2] of char =
- (('Q','Й','q'), ('W','Ц','w'), ('E','У','e'), ('R','К','r'), ('T','Е','t'),
-  ('Y','Н','y'), ('U','Г','u'), ('I','Ш','i'), ('O','Щ','o'), ('P','З','p'),
-  ('[','Х','{'), (']','Ъ','}'), ('\','|','/'), ('A','Ф','a'), ('S','Ы','s'),
-  ('D','В','d'), ('F','А','f'), ('G','П','g'), ('H','Р','h'), ('J','О','j'),
-  ('K','Л','k'), ('L','Д','l'), (';','Ж',':'), ('''','Э','"'),('Z','Я','z'),
-  ('X','Ч','x'), ('C','С','c'), ('V','М','v'), ('B','И','b'), ('N','Т','n'),
-  ('M','Ь','m'), (',','Б','<'), ('.','Ю','>'), ('/','.',','), (' ',' ',' '),
+ (('Q',#$C9,'q'), ('W',#$D6,'w'), ('E',#$D3,'e'), ('R',#$CA,'r'), ('T',#$C5,'t'),
+  ('Y',#$CD,'y'), ('U',#$C3,'u'), ('I',#$D8,'i'), ('O',#$D9,'o'), ('P',#$C7,'p'),
+  ('[',#$D5,'{'), (']',#$DA,'}'), ('\','|','/'), ('A',#$D4,'a'), ('S',#$DB,'s'),
+  ('D',#$C2,'d'), ('F',#$C0,'f'), ('G',#$CF,'g'), ('H',#$D0,'h'), ('J',#$CE,'j'),
+  ('K',#$CB,'k'), ('L',#$C4,'l'), (';',#$C6,':'), ('''',#$DD,'"'),('Z',#$DF,'z'),
+  ('X',#$D7,'x'), ('C',#$D1,'c'), ('V',#$CC,'v'), ('B',#$C8,'b'), ('N',#$D2,'n'),
+  ('M',#$DC,'m'), (',',#$C1,'<'), ('.',#$DE,'>'), ('/','.',','), (' ',' ',' '),
   ('|','\','\'));
 var
 NumKey // Номер клавиши
@@ -936,7 +941,7 @@ NumFirstLine // Номер первой видимой строки
 //
 begin
 Memo.Lines.BeginUpdate;
-LockWindowUpdate(Memo.Handle);  // Устан. блокир. обнов. экрана. (Не нужно)
+{$IFDEF MSWINDOWS}LockWindowUpdate(Memo.Handle);{$ENDIF}  // Устан. блокир. обнов. экрана. (Не нужно)
 if Style = Accurate then
  begin
  NumStr:=0;
@@ -1016,7 +1021,7 @@ for j:=1 to Length(StrScreen)-1 do
  Memo.SelStart:=PosScr;
  end;}
 //SendMessage(Memo.Handle,EM_LINESCROLL,0,-Memo.Lines.Count); // Для прокрутки в нач.
-LockWindowUpdate(0);  // Отмена блокировки обнов. экрана
+{$IFDEF MSWINDOWS}LockWindowUpdate(0);{$ENDIF}  // Отмена блокировки обнов. экрана
 Memo.Lines.EndUpdate;
 end;
 
@@ -1876,6 +1881,7 @@ end;
 // Главное меню - "Редактирование - Печать экрана"
 // ===============================================
 procedure TFormMain.MMPrintClick(Sender: TObject);
+{$IFDEF MSWINDOWS}
 var
 ToPrn //
       :  TextFile;
@@ -1887,6 +1893,9 @@ AssignPrn(ToPrn);
 Rewrite(ToPrn);
 Writeln(ToPrn, StrScreen);
 CloseFile(ToPrn);
+{$ELSE}
+begin
+{$ENDIF}
 end;
 //
 // Главное меню - "Параметры - Сервер"
@@ -2422,7 +2431,9 @@ end;
 // ==============
 procedure TFormMain.ButtonPrintClick(Sender: TObject);
 begin
+{$IFDEF MSWINDOWS}
 if PrintDialog.Execute = false then Exit;
+{$ENDIF}
 end;
 //
 procedure TFormMain.ButtonPrintKeyDown(Sender: TObject; var Key: Word;
@@ -2646,9 +2657,11 @@ CurrentLine // Корректный Номер строки
           :  integer;
 begin
 if Mode = ONLine then Exit;
+{$IFDEF MSWINDOWS}
 CurrentLine:=SendMessage(memo.Handle,EM_LINEFROMCHAR, memo.SelStart, 0);
-//NumStr:=Memo.CaretPos.Y;
-//NumStr:=CurrentLine;
+{$ELSE}
+CurrentLine:=Memo.CaretPos.Y;
+{$ENDIF}
 CountStr:=0;
 // CountStr:=Memo.Lines.Count;
 for NumPos:=1 to Length(StrScreen) do
@@ -2686,8 +2699,11 @@ CurrentLine // Корректный Номер строки
           :  integer;
 begin
 if Mode = ONLine then Exit;
-//NumStr:=Memo.CaretPos.Y;
+{$IFDEF MSWINDOWS}
 CurrentLine:=SendMessage(memo.Handle,EM_LINEFROMCHAR, memo.SelStart, 0);
+{$ELSE}
+CurrentLine:=Memo.CaretPos.Y;
+{$ENDIF}
 CountStr:=0;
 for NumPos:=1 to Length(StrScreen) do
  begin
