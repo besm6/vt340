@@ -6,6 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 VT-340 terminal emulator written in Object Pascal (Delphi/FreePascal), targeting Win32. Designed for connecting to the BESM-6 mainframe at `besm6.cs.msu.ru` via Telnet or SSH tunnel through `plink.exe`.
 
+## Documentation
+
+The `doc/` directory contains supporting documentation:
+
+- `doc/Displaying-on-VT340-BESM4.md` — guide to displaying BESM-4 output on a VT-340 terminal (also as PDF)
+- `doc/vt340-linux.png` — screenshot used in README
+
 ## Build Commands
 
 ```bash

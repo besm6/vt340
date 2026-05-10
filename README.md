@@ -133,6 +133,15 @@ Delete `Prm.ini` to reset everything to defaults.
 
 ---
 
+## Documentation
+
+Additional documentation is in the [`doc/`](doc/) directory:
+
+- [Displaying-on-VT340-BESM4.md](doc/Displaying-on-VT340-BESM4.md) — guide to displaying BESM-4 output on a VT-340 terminal (also available as [PDF](doc/Displaying-on-VT340-BESM4.pdf))
+- [vt340-linux.png](doc/vt340-linux.png) — screenshot of the emulator running on Linux
+
+---
+
 ## Project Structure
 
 ```
