@@ -31,24 +31,20 @@ FPC_CPU  := $(shell $(FPC) -iTP 2>/dev/null)
 FPC_OS   := $(shell $(FPC) -iTO 2>/dev/null)
 LCL_ARCH := $(FPC_CPU)-$(FPC_OS)
 
+LCLDIR      ?= Lazarus/lcl/units/$(LCL_ARCH)
+LAZUTILSDIR ?= Lazarus/components/lazutils/lib/$(LCL_ARCH)
+LCL_STAMP   := Lazarus/lcl/units/$(LCL_ARCH)/.built
+
 ifeq ($(HOST_OS),Linux)
-  LAZARUSDIR   := Lazarus
-  LCLDIR       ?= $(LAZARUSDIR)/lcl/units/$(LCL_ARCH)
-  LCLGTK2DIR   ?= $(LAZARUSDIR)/lcl/units/$(LCL_ARCH)/gtk2
-  LAZUTILSDIR  ?= $(LAZARUSDIR)/components/lazutils/lib/$(LCL_ARCH)
-  FCLPROCDIR   ?= /usr/lib/$(FPC_CPU)-linux-gnu/fpc/3.2.2/units/$(LCL_ARCH)/fcl-process
   LCL_PLATFORM := gtk2
-  LCL_STAMP    := $(LAZARUSDIR)/lcl/units/$(LCL_ARCH)/.built
+  LCLGTK2DIR   ?= Lazarus/lcl/units/$(LCL_ARCH)/gtk2
+  FCLPROCDIR   ?= /usr/lib/$(FPC_CPU)-linux-gnu/fpc/3.2.2/units/$(LCL_ARCH)/fcl-process
 endif
 
 ifeq ($(HOST_OS),Darwin)
-  LAZARUSDIR   := Lazarus
-  LCLDIR       ?= $(LAZARUSDIR)/lcl/units/$(LCL_ARCH)
-  LCLCOCOADIR  ?= $(LAZARUSDIR)/lcl/units/$(LCL_ARCH)/cocoa
-  LAZUTILSDIR  ?= $(LAZARUSDIR)/components/lazutils/lib/$(LCL_ARCH)
-  FCLPROCDIR   ?= /usr/local/lib/fpc/3.2.2/units/$(LCL_ARCH)/fcl-process
   LCL_PLATFORM := cocoa
-  LCL_STAMP    := $(LAZARUSDIR)/lcl/units/$(LCL_ARCH)/.built
+  LCLCOCOADIR  ?= Lazarus/lcl/units/$(LCL_ARCH)/cocoa
+  FCLPROCDIR   ?= /usr/local/lib/fpc/3.2.2/units/$(LCL_ARCH)/fcl-process
 endif
 
 # ---------------------------------------------------------------------------
@@ -164,10 +160,10 @@ Lazarus:
 ifneq ($(LCL_STAMP),)
 # Compile LCL from the Lazarus/ source checkout (Linux/macOS).
 $(LCL_STAMP): Lazarus
-	cp src/LazarusPackageIntf.pas $(LAZARUSDIR)/components/lazutils/
-	cd $(LAZARUSDIR)/components/lazutils && $(MAKE) -j1 FPC=$(FPC)
-	cd $(LAZARUSDIR)/components/freetype && $(MAKE) -j1 FPC=$(FPC)
-	cd $(LAZARUSDIR)/lcl && $(MAKE) -j1 FPC=$(FPC) LCL_PLATFORM=$(LCL_PLATFORM)
+	cp src/LazarusPackageIntf.pas Lazarus/components/lazutils/
+	cd Lazarus/components/lazutils && $(MAKE) -j1 FPC=$(FPC)
+	cd Lazarus/components/freetype && $(MAKE) -j1 FPC=$(FPC)
+	cd Lazarus/lcl && $(MAKE) -j1 FPC=$(FPC) LCL_PLATFORM=$(LCL_PLATFORM)
 	touch $@
 endif
 
