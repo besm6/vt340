@@ -156,15 +156,15 @@ $(BINDIR) $(OBJDIR):
 	mkdir -p $@
 
 Indy:
-	git clone https://github.com/IndySockets/Indy.git
+	git clone --depth 1 https://github.com/IndySockets/Indy.git
 
 Lazarus:
-	git clone --branch fixes_3_0 https://github.com/fpc/Lazarus.git
+	git clone --branch fixes_3_0 --depth 1 https://github.com/fpc/Lazarus.git
 
 ifneq ($(LCL_STAMP),)
 # Compile LCL from the Lazarus/ source checkout (Linux/macOS).
 $(LCL_STAMP): Lazarus
-	cp stubs/LazarusPackageIntf.pas $(LAZARUSDIR)/components/lazutils/
+	cp src/LazarusPackageIntf.pas $(LAZARUSDIR)/components/lazutils/
 	cd $(LAZARUSDIR)/components/lazutils && $(MAKE) -j1 FPC=$(FPC)
 	cd $(LAZARUSDIR)/components/freetype && $(MAKE) -j1 FPC=$(FPC)
 	cd $(LAZARUSDIR)/lcl && $(MAKE) -j1 FPC=$(FPC) LCL_PLATFORM=$(LCL_PLATFORM)
